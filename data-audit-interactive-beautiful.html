@@ -1,0 +1,1493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Audit & Assessment Tool | TRAIL</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+        body {
+            font-family: 'Figtree', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+            color: #1e293b;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            min-height: 100vh;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: linear-gradient(180deg, #0f172a 0%, #1a2f4a 100%);
+            padding: 2rem 1.5rem;
+            overflow-y: auto;
+            border-right: 1px solid rgba(148, 163, 184, 0.1);
+            z-index: 100;
+        }
+
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: white;
+            font-size: 1.25rem;
+        }
+
+        .logo-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e2e8f0;
+        }
+
+        .logo-subtext {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 2px;
+        }
+
+        .sidebar-sections {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .sidebar-section-title {
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-items {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .sidebar-item {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: #e2e8f0;
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%);
+            color: #60a5fa;
+            border-left: 3px solid #3b82f6;
+            padding-left: calc(1rem - 3px);
+        }
+
+        .sidebar-item-number {
+            width: 24px;
+            height: 24px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #93c5fd;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-bar {
+            background: linear-gradient(90deg, #ffffff 0%, #f8fafc 100%);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .progress-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .step-badge {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 100%);
+            margin-top: 1rem;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 3rem 2rem;
+            overflow-y: auto;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 16px;
+            padding: 2.5rem;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 10px 40px rgba(15, 23, 42, 0.08);
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .section-description {
+            font-size: 0.95rem;
+            color: #64748b;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .label-icon {
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-family: 'Figtree', system-ui;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            background: #f8fafc;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: 'Figtree', system-ui;
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.75rem;
+            border-radius: 10px;
+            transition: all 0.2s;
+            background: #f8fafc;
+        }
+
+        .checkbox-item:hover {
+            background: #f1f5f9;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #3b82f6;
+            border-radius: 4px;
+        }
+
+        .checkbox-label {
+            color: #334155;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .input-row input {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.95rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            padding: 0.75rem 1rem;
+            white-space: nowrap;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.2);
+        }
+
+        .btn-add:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-remove {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 0.5rem;
+            font-size: 1.5rem;
+            line-height: 1;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-remove:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .item-card {
+            padding: 1rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .item-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+        }
+
+        .item-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .item-code {
+            font-weight: 700;
+            color: #3b82f6;
+            font-family: 'DM Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .item-name {
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .pain-point-card,
+        .funder-card {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, #fef3c7 0%, #fef08a 100%);
+            border: 2px solid #fde68a;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            transition: all 0.2s;
+        }
+
+        .funder-card {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border-color: #93c5fd;
+        }
+
+        .pain-point-card:hover,
+        .funder-card:hover {
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+
+        .pain-point-card input,
+        .pain-point-card textarea,
+        .funder-card input,
+        .funder-card textarea {
+            background: white;
+            border-color: #fcd34d;
+        }
+
+        .funder-card input,
+        .funder-card textarea {
+            border-color: #93c5fd;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 1rem;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            color: #94a3b8;
+            border: 2px dashed #cbd5e1;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-text {
+            font-size: 0.95rem;
+        }
+
+        .intro-card {
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+
+        .intro-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .intro-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .intro-description {
+            font-size: 1.05rem;
+            color: #64748b;
+            margin-bottom: 0.75rem;
+            line-height: 1.7;
+        }
+
+        .intro-subtitle {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .intro-features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 2px solid #e2e8f0;
+        }
+
+        .feature-item {
+            padding: 1.5rem;
+            background: #f8fafc;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-title {
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .feature-desc {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .summary-card {
+            padding: 1.75rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+        }
+
+        .summary-success {
+            background: linear-gradient(135deg, #dcfce7 0%, #d1fae5 100%);
+            border: 2px solid #86efac;
+        }
+
+        .summary-info {
+            background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+            border: 2px solid #93c5fd;
+        }
+
+        .summary-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #0f172a;
+        }
+
+        .summary-success .summary-title {
+            color: #15803d;
+        }
+
+        .summary-info .summary-title {
+            color: #1e40af;
+        }
+
+        .summary-list {
+            background: white;
+            border-radius: 10px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .summary-list-item {
+            padding: 0.5rem 0;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .summary-list-item:last-child {
+            border-bottom: none;
+        }
+
+        .summary-list-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .summary-list-value {
+            color: #0f172a;
+            font-weight: 700;
+        }
+
+        .summary-steps {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .summary-step {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .summary-step-num {
+            width: 32px;
+            height: 32px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #3b82f6;
+            flex-shrink: 0;
+        }
+
+        .summary-step-text {
+            flex: 1;
+            padding-top: 0.25rem;
+            color: #0f172a;
+            font-weight: 500;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .btn-row-full {
+            flex: 1;
+        }
+
+        .example-text {
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: #f0f9ff;
+            border-left: 3px solid #3b82f6;
+            border-radius: 6px;
+            font-style: italic;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 240px;
+            }
+            .main-content {
+                margin-left: 240px;
+            }
+            .intro-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: relative;
+                width: 100%;
+                height: auto;
+                padding: 1rem;
+                border-right: none;
+                border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+            .sidebar-sections {
+                flex-direction: row;
+                flex-wrap: wrap;
+            }
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState } from 'https://esm.sh/react@18.2.0';
+        import ReactDOM from 'https://esm.sh/react-dom@18.2.0/client';
+
+        const DataAuditTool = () => {
+          const [currentStep, setCurrentStep] = useState(0);
+          const [responses, setResponses] = useState({
+            orgName: '',
+            programTypes: [],
+            dataCollectionPoints: [],
+            internalDataUses: [],
+            funderRequirements: [],
+            teamInfo: {},
+            budgetInfo: {},
+          });
+
+          const [workflowDiagram, setWorkflowDiagram] = useState('');
+          const [painPoints, setPainPoints] = useState([]);
+          const [currentInput, setCurrentInput] = useState('');
+
+          const steps = [
+            { id: 'intro', title: 'Data Audit & Assessment', type: 'intro', icon: '📋' },
+            { id: 'orgInfo', title: 'About Your Organization', type: 'text', icon: '🏢', questions: [{ field: 'orgName', label: 'Organization Name', placeholder: 'Enter your organization name' }] },
+            { id: 'programTypes', title: 'Your Programs', type: 'checkboxes', icon: '🎯', label: 'What type of programs does your organization run? (Select all that apply)', options: ['Direct service', 'Youth development', 'Education/training', 'Advocacy/policy', 'Community building', 'Capacity building', 'Other'], field: 'programTypes' },
+            { id: 'dataCollectionPoints', title: 'Data Collection Points', type: 'collection-points', icon: '📊', description: 'List every place data enters your system. Include intake forms, surveys, tracking systems, etc.' },
+            { id: 'workflows', title: 'Data Workflows', type: 'workflows', icon: '🔄', description: 'Describe how data flows through your organization. What are the main steps from collection to reporting?' },
+            { id: 'painPoints', title: 'Workflow Pain Points', type: 'pain-points', icon: '⚠️', description: 'What are the biggest bottlenecks or issues in your data workflows?' },
+            { id: 'internalUses', title: 'Internal Data Uses', type: 'data-uses', icon: '💡', description: 'What questions do your staff and leadership ask of your data? What do they need to know to make decisions?' },
+            { id: 'funderRequirements', title: 'Funder Requirements', type: 'funder-requirements', icon: '🏦', description: 'For each funder or partner, what data do they require and when?' },
+            { id: 'teamCapacity', title: 'Data Team & Skills', type: 'team-capacity', icon: '👥', description: 'Tell us about your team\'s data management capabilities' },
+            { id: 'budget', title: 'Budget & Infrastructure', type: 'budget-info', icon: '💰', description: 'What\'s your budget and infrastructure situation?' },
+            { id: 'dataCulture', title: 'Data Culture & Strategy', type: 'data-culture', icon: '🌱', description: 'How does your organization currently use data?' },
+            { id: 'summary', title: 'Audit Complete', type: 'summary', icon: '✓' },
+          ];
+
+          const currentStepData = steps[currentStep];
+
+          const updateResponse = (field, value) => {
+            setResponses(prev => ({ ...prev, [field]: value }));
+          };
+
+          const toggleCheckbox = (field, option) => {
+            setResponses(prev => ({
+              ...prev,
+              [field]: prev[field].includes(option) ? prev[field].filter(item => item !== option) : [...prev[field], option]
+            }));
+          };
+
+          const addCollectionPoint = (point) => {
+            if (point.trim()) {
+              setResponses(prev => ({
+                ...prev,
+                dataCollectionPoints: [...prev.dataCollectionPoints, { id: Date.now(), name: point, code: `S1-${prev.dataCollectionPoints.length + 1}` }]
+              }));
+              setCurrentInput('');
+            }
+          };
+
+          const removeCollectionPoint = (id) => {
+            setResponses(prev => ({
+              ...prev,
+              dataCollectionPoints: prev.dataCollectionPoints.filter(item => item.id !== id)
+            }));
+          };
+
+          const addDataUse = (use) => {
+            if (use.trim()) {
+              setResponses(prev => ({
+                ...prev,
+                internalDataUses: [...prev.internalDataUses, { id: Date.now(), question: use }]
+              }));
+              setCurrentInput('');
+            }
+          };
+
+          const addFunderRequirement = (funder) => {
+            if (funder.trim()) {
+              setResponses(prev => ({
+                ...prev,
+                funderRequirements: [...prev.funderRequirements, { id: Date.now(), name: funder, reportName: '', deadline: '', dataNeeded: '' }]
+              }));
+              setCurrentInput('');
+            }
+          };
+
+          const updateFunderRequirement = (id, field, value) => {
+            setResponses(prev => ({
+              ...prev,
+              funderRequirements: prev.funderRequirements.map(item =>
+                item.id === id ? { ...item, [field]: value } : item
+              )
+            }));
+          };
+
+          const removeFunderRequirement = (id) => {
+            setResponses(prev => ({
+              ...prev,
+              funderRequirements: prev.funderRequirements.filter(item => item.id !== id)
+            }));
+          };
+
+          const addPainPoint = (point) => {
+            if (point.trim()) {
+              setPainPoints([...painPoints, { id: Date.now(), point, rootCause: '', impact: '' }]);
+              setCurrentInput('');
+            }
+          };
+
+          const updatePainPoint = (id, field, value) => {
+            setPainPoints(painPoints.map(item =>
+              item.id === id ? { ...item, [field]: value } : item
+            ));
+          };
+
+          const removePainPoint = (id) => {
+            setPainPoints(painPoints.filter(item => item.id !== id));
+          };
+
+          const exportToJSON = () => {
+            const exportData = {
+              timestamp: new Date().toISOString(),
+              organizationName: responses.orgName,
+              ...responses,
+              painPoints,
+              workflowDescription: workflowDiagram,
+            };
+            
+            const element = document.createElement('a');
+            element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(exportData, null, 2)));
+            element.setAttribute('download', `data-audit-${responses.orgName?.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.json`);
+            element.style.display = 'none';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+          };
+
+          const renderStep = () => {
+            if (currentStepData.type === 'intro') {
+              return React.createElement('div', { className: 'intro-card' },
+                React.createElement('div', { className: 'intro-icon' }, currentStepData.icon),
+                React.createElement('h2', { className: 'intro-title' }, 'Data Audit & Assessment Tool'),
+                React.createElement('p', { className: 'intro-description' }, 'Let\'s map your organization\'s complete data ecosystem'),
+                React.createElement('p', { className: 'intro-subtitle' }, 'This questionnaire typically takes 30-45 minutes and can be saved and completed over multiple sessions.'),
+                
+                React.createElement('div', { className: 'intro-features' },
+                  React.createElement('div', { className: 'feature-item' },
+                    React.createElement('div', { className: 'feature-icon' }, '📊'),
+                    React.createElement('div', { className: 'feature-title' }, 'Data Inventory'),
+                    React.createElement('div', { className: 'feature-desc' }, 'Map your current data landscape')
+                  ),
+                  React.createElement('div', { className: 'feature-item' },
+                    React.createElement('div', { className: 'feature-icon' }, '🏦'),
+                    React.createElement('div', { className: 'feature-title' }, 'Requirements'),
+                    React.createElement('div', { className: 'feature-desc' }, 'List all funder needs')
+                  ),
+                  React.createElement('div', { className: 'feature-item' },
+                    React.createElement('div', { className: 'feature-icon' }, '💪'),
+                    React.createElement('div', { className: 'feature-title' }, 'Capacity'),
+                    React.createElement('div', { className: 'feature-desc' }, 'Assess your team\'s abilities')
+                  )
+                ),
+
+                React.createElement('div', { className: 'btn-row', style: { justifyContent: 'center' } },
+                  React.createElement('button', { onClick: () => setCurrentStep(currentStep + 1), className: 'btn btn-primary', style: { padding: '1rem 2rem', fontSize: '1rem' } }, 
+                    'Begin Audit →'
+                  )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'text') {
+              return React.createElement('div', {},
+                currentStepData.questions.map((q, idx) =>
+                  React.createElement('div', { key: idx, className: 'form-group' },
+                    React.createElement('label', { className: 'label' },
+                      React.createElement('span', { className: 'label-icon' }, '①'),
+                      q.label
+                    ),
+                    React.createElement('input', {
+                      type: 'text',
+                      placeholder: q.placeholder,
+                      value: responses[q.field] || '',
+                      onChange: (e) => updateResponse(q.field, e.target.value),
+                    })
+                  )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'checkboxes') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.label),
+                React.createElement('div', { className: 'checkbox-group' },
+                  currentStepData.options.map(option =>
+                    React.createElement('label', { key: option, className: 'checkbox-item' },
+                      React.createElement('input', {
+                        type: 'checkbox',
+                        checked: responses[currentStepData.field]?.includes(option) || false,
+                        onChange: () => toggleCheckbox(currentStepData.field, option),
+                      }),
+                      React.createElement('span', { className: 'checkbox-label' }, option)
+                    )
+                  )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'collection-points') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.description),
+                React.createElement('div', { className: 'example-text' },
+                  '💡 Example: Program intake form, Attendance tracker, Survey tool, Customer database, Email signup form'
+                ),
+                React.createElement('div', { className: 'input-row' },
+                  React.createElement('input', {
+                    type: 'text',
+                    placeholder: 'Add a data collection point...',
+                    value: currentInput,
+                    onChange: (e) => setCurrentInput(e.target.value),
+                    onKeyPress: (e) => e.key === 'Enter' && addCollectionPoint(currentInput),
+                  }),
+                  React.createElement('button', {
+                    onClick: () => addCollectionPoint(currentInput),
+                    className: 'btn btn-add',
+                  }, '+ Add')
+                ),
+                React.createElement('div', { className: 'item-list', style: { marginTop: '1.5rem' } },
+                  responses.dataCollectionPoints.length === 0 ? 
+                    React.createElement('div', { className: 'empty-state' },
+                      React.createElement('div', { className: 'empty-state-icon' }, '📝'),
+                      React.createElement('div', { className: 'empty-state-text' }, 'Start adding your data collection points')
+                    ) :
+                    responses.dataCollectionPoints.map((point) =>
+                      React.createElement('div', { key: point.id, className: 'item-card' },
+                        React.createElement('div', { className: 'item-content' },
+                          React.createElement('div', { className: 'item-code' }, point.code),
+                          React.createElement('div', { className: 'item-name' }, point.name)
+                        ),
+                        React.createElement('button', {
+                          onClick: () => removeCollectionPoint(point.id),
+                          className: 'btn-remove',
+                        }, '×')
+                      )
+                    )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'workflows') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.description),
+                React.createElement('div', { className: 'example-text' },
+                  '💡 Example: Paper forms → Staff enters to Sheets → Cleanup/deduplication → Program director builds reports → Send to funders'
+                ),
+                React.createElement('textarea', {
+                  value: workflowDiagram,
+                  onChange: (e) => setWorkflowDiagram(e.target.value),
+                  placeholder: 'Describe your data workflow step-by-step. Include who is involved at each stage.',
+                })
+              );
+            }
+
+            if (currentStepData.type === 'pain-points') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.description),
+                React.createElement('div', { className: 'example-text' },
+                  '💡 Example: Manual data entry causes 3-day delays, Data duplicated across systems, No automated reporting'
+                ),
+                React.createElement('div', { className: 'input-row' },
+                  React.createElement('input', {
+                    type: 'text',
+                    placeholder: 'Describe a pain point...',
+                    value: currentInput,
+                    onChange: (e) => setCurrentInput(e.target.value),
+                    onKeyPress: (e) => e.key === 'Enter' && addPainPoint(currentInput),
+                  }),
+                  React.createElement('button', {
+                    onClick: () => addPainPoint(currentInput),
+                    className: 'btn btn-add',
+                  }, '+ Add')
+                ),
+                React.createElement('div', { style: { marginTop: '1.5rem' } },
+                  painPoints.length === 0 ?
+                    React.createElement('div', { className: 'empty-state' },
+                      React.createElement('div', { className: 'empty-state-icon' }, '⚠️'),
+                      React.createElement('div', { className: 'empty-state-text' }, 'Add workflow pain points to identify improvement opportunities')
+                    ) :
+                    painPoints.map((point) =>
+                      React.createElement('div', { key: point.id, className: 'pain-point-card' },
+                        React.createElement('div', { className: 'card-header' },
+                          React.createElement('div', { className: 'card-title' }, point.point),
+                          React.createElement('button', {
+                            onClick: () => removePainPoint(point.id),
+                            className: 'btn-remove',
+                          }, '×')
+                        ),
+                        React.createElement('input', {
+                          type: 'text',
+                          placeholder: 'Root cause...',
+                          value: point.rootCause,
+                          onChange: (e) => updatePainPoint(point.id, 'rootCause', e.target.value),
+                          style: { marginBottom: '0.75rem' }
+                        }),
+                        React.createElement('textarea', {
+                          placeholder: 'What\'s the impact?',
+                          value: point.impact,
+                          onChange: (e) => updatePainPoint(point.id, 'impact', e.target.value),
+                        })
+                      )
+                    )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'data-uses') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.description),
+                React.createElement('div', { className: 'example-text' },
+                  '💡 Example: Are we reaching enrollment targets? Which programs are most effective? Are participants progressing?'
+                ),
+                React.createElement('div', { className: 'input-row' },
+                  React.createElement('input', {
+                    type: 'text',
+                    placeholder: 'Add a data question...',
+                    value: currentInput,
+                    onChange: (e) => setCurrentInput(e.target.value),
+                    onKeyPress: (e) => e.key === 'Enter' && addDataUse(currentInput),
+                  }),
+                  React.createElement('button', {
+                    onClick: () => addDataUse(currentInput),
+                    className: 'btn btn-add',
+                  }, '+ Add')
+                ),
+                React.createElement('div', { className: 'item-list', style: { marginTop: '1.5rem' } },
+                  responses.internalDataUses.length === 0 ?
+                    React.createElement('div', { className: 'empty-state' },
+                      React.createElement('div', { className: 'empty-state-icon' }, '💡'),
+                      React.createElement('div', { className: 'empty-state-text' }, 'Add questions your team needs answered')
+                    ) :
+                    responses.internalDataUses.map((use) =>
+                      React.createElement('div', { key: use.id, className: 'item-card' },
+                        React.createElement('div', { className: 'item-content' }, use.question),
+                        React.createElement('button', {
+                          onClick: () => {
+                            setResponses(prev => ({
+                              ...prev,
+                              internalDataUses: prev.internalDataUses.filter(item => item.id !== use.id)
+                            }));
+                          },
+                          className: 'btn-remove',
+                        }, '×')
+                      )
+                    )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'funder-requirements') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description' }, currentStepData.description),
+                React.createElement('div', { className: 'example-text' },
+                  '💡 Funders often need similar data. Reference the collection points (S1-1, S1-2, etc.) from your data collection list.'
+                ),
+                React.createElement('div', { className: 'input-row' },
+                  React.createElement('input', {
+                    type: 'text',
+                    placeholder: 'Add funder or partner name...',
+                    value: currentInput,
+                    onChange: (e) => setCurrentInput(e.target.value),
+                    onKeyPress: (e) => e.key === 'Enter' && addFunderRequirement(currentInput),
+                  }),
+                  React.createElement('button', {
+                    onClick: () => addFunderRequirement(currentInput),
+                    className: 'btn btn-add',
+                  }, '+ Add')
+                ),
+                React.createElement('div', { style: { marginTop: '1.5rem' } },
+                  responses.funderRequirements.length === 0 ?
+                    React.createElement('div', { className: 'empty-state' },
+                      React.createElement('div', { className: 'empty-state-icon' }, '🏦'),
+                      React.createElement('div', { className: 'empty-state-text' }, 'Add your funders and partners')
+                    ) :
+                    responses.funderRequirements.map((funder) =>
+                      React.createElement('div', { key: funder.id, className: 'funder-card' },
+                        React.createElement('div', { className: 'card-header' },
+                          React.createElement('div', { className: 'card-title' }, funder.name),
+                          React.createElement('button', {
+                            onClick: () => removeFunderRequirement(funder.id),
+                            className: 'btn-remove',
+                          }, '×')
+                        ),
+                        React.createElement('input', {
+                          type: 'text',
+                          placeholder: 'Report name...',
+                          value: funder.reportName,
+                          onChange: (e) => updateFunderRequirement(funder.id, 'reportName', e.target.value),
+                          style: { marginBottom: '0.75rem' }
+                        }),
+                        React.createElement('input', {
+                          type: 'text',
+                          placeholder: 'Deadline (e.g., June 30)...',
+                          value: funder.deadline,
+                          onChange: (e) => updateFunderRequirement(funder.id, 'deadline', e.target.value),
+                          style: { marginBottom: '0.75rem' }
+                        }),
+                        React.createElement('textarea', {
+                          placeholder: 'Data needed (e.g., S1-1, S1-3, S1-5)',
+                          value: funder.dataNeeded,
+                          onChange: (e) => updateFunderRequirement(funder.id, 'dataNeeded', e.target.value),
+                        })
+                      )
+                    )
+                )
+              );
+            }
+
+            if (currentStepData.type === 'team-capacity') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description', style: { marginBottom: '1.5rem' } }, currentStepData.description),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '①'),
+                    'Who manages data on your team?'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.managers || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, managers: e.target.value }),
+                    placeholder: 'e.g., Program Coordinator (50%), Operations Manager (10%)',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '②'),
+                    'What data skills exist on your team?'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.skills || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, skills: e.target.value }),
+                    placeholder: 'e.g., Spreadsheets, data analysis, visualization, SQL',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '③'),
+                    'What are the top barriers?'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.barriers || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, barriers: e.target.value }),
+                    placeholder: 'e.g., Limited time, skills gaps, tool costs, competing priorities',
+                  })
+                )
+              );
+            }
+
+            if (currentStepData.type === 'budget-info') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description', style: { marginBottom: '1.5rem' } }, currentStepData.description),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '①'),
+                    'Current tools and costs'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.budgetInfo?.currentTools || '',
+                    onChange: (e) => updateResponse('budgetInfo', { ...responses.budgetInfo, currentTools: e.target.value }),
+                    placeholder: 'e.g., Google Workspace ($120/yr), Salesforce ($10,000/yr)',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '②'),
+                    'Annual budget for data solutions'
+                  ),
+                  React.createElement('input', {
+                    type: 'text',
+                    value: responses.budgetInfo?.dataBudget || '',
+                    onChange: (e) => updateResponse('budgetInfo', { ...responses.budgetInfo, dataBudget: e.target.value }),
+                    placeholder: 'e.g., $5,000/year or $500/month',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '③'),
+                    'IT support capacity'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.budgetInfo?.itSupport || '',
+                    onChange: (e) => updateResponse('budgetInfo', { ...responses.budgetInfo, itSupport: e.target.value }),
+                    placeholder: 'e.g., Yes, 5 hrs/week, or No dedicated IT',
+                  })
+                )
+              );
+            }
+
+            if (currentStepData.type === 'data-culture') {
+              return React.createElement('div', {},
+                React.createElement('p', { className: 'section-description', style: { marginBottom: '1.5rem' } }, currentStepData.description),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '①'),
+                    'Data governance & privacy'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.governance || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, governance: e.target.value }),
+                    placeholder: 'Describe your current policies',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '②'),
+                    'How data is used for decisions'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.decisions || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, decisions: e.target.value }),
+                    placeholder: 'How does your team currently use data?',
+                  })
+                ),
+                React.createElement('div', { className: 'form-group' },
+                  React.createElement('label', { className: 'label' },
+                    React.createElement('span', { className: 'label-icon' }, '③'),
+                    'Vision for success (12-18 months)'
+                  ),
+                  React.createElement('textarea', {
+                    value: responses.teamInfo?.vision || '',
+                    onChange: (e) => updateResponse('teamInfo', { ...responses.teamInfo, vision: e.target.value }),
+                    placeholder: 'What would better data management look like?',
+                  })
+                )
+              );
+            }
+
+            if (currentStepData.type === 'summary') {
+              return React.createElement('div', {},
+                React.createElement('div', { className: 'summary-card summary-success' },
+                  React.createElement('h3', { className: 'summary-title' }, '✨ Audit Complete!'),
+                  React.createElement('p', { style: { color: '#15803d', marginBottom: '1.5rem', fontSize: '0.95rem' } }, 'Thank you for providing comprehensive information about your organization\'s data landscape. Your responses are ready to download and share with your consultant.'),
+                  
+                  React.createElement('div', { className: 'summary-list' },
+                    React.createElement('div', { className: 'summary-list-item' },
+                      React.createElement('span', { className: 'summary-list-label' }, 'Organization'),
+                      React.createElement('span', { className: 'summary-list-value' }, responses.orgName || 'Not provided')
+                    ),
+                    React.createElement('div', { className: 'summary-list-item' },
+                      React.createElement('span', { className: 'summary-list-label' }, 'Collection Points'),
+                      React.createElement('span', { className: 'summary-list-value' }, responses.dataCollectionPoints.length)
+                    ),
+                    React.createElement('div', { className: 'summary-list-item' },
+                      React.createElement('span', { className: 'summary-list-label' }, 'Internal Data Uses'),
+                      React.createElement('span', { className: 'summary-list-value' }, responses.internalDataUses.length)
+                    ),
+                    React.createElement('div', { className: 'summary-list-item' },
+                      React.createElement('span', { className: 'summary-list-label' }, 'Funders & Partners'),
+                      React.createElement('span', { className: 'summary-list-value' }, responses.funderRequirements.length)
+                    ),
+                    React.createElement('div', { className: 'summary-list-item' },
+                      React.createElement('span', { className: 'summary-list-label' }, 'Pain Points Identified'),
+                      React.createElement('span', { className: 'summary-list-value' }, painPoints.length)
+                    )
+                  ),
+
+                  React.createElement('button', {
+                    onClick: exportToJSON,
+                    className: 'btn btn-primary',
+                    style: { width: '100%', justifyContent: 'center', padding: '1rem', marginTop: '1rem', fontSize: '1rem' }
+                  }, '⬇️ Download Your Audit Data')
+                ),
+
+                React.createElement('div', { className: 'summary-card summary-info' },
+                  React.createElement('h3', { className: 'summary-title' }, '📋 Next Steps'),
+                  React.createElement('div', { className: 'summary-steps' },
+                    React.createElement('div', { className: 'summary-step' },
+                      React.createElement('span', { className: 'summary-step-num' }, '1'),
+                      React.createElement('span', { className: 'summary-step-text' }, 'Review the JSON file with your team to ensure accuracy')
+                    ),
+                    React.createElement('div', { className: 'summary-step' },
+                      React.createElement('span', { className: 'summary-step-num' }, '2'),
+                      React.createElement('span', { className: 'summary-step-text' }, 'Share the file with your TRAIL consultant')
+                    ),
+                    React.createElement('div', { className: 'summary-step' },
+                      React.createElement('span', { className: 'summary-step-num' }, '3'),
+                      React.createElement('span', { className: 'summary-step-text' }, 'Schedule a debrief meeting (1-2 hours) to discuss findings and recommendations')
+                    )
+                  )
+                )
+              );
+            }
+          };
+
+          const progress = ((currentStep + 1) / steps.length) * 100;
+
+          return React.createElement('div', { className: 'page-wrapper' },
+            React.createElement('div', { className: 'sidebar' },
+              React.createElement('div', { className: 'sidebar-logo' },
+                React.createElement('div', { className: 'logo-icon' }, '🎯'),
+                React.createElement('div', {},
+                  React.createElement('div', { className: 'logo-text' }, 'TRAIL'),
+                  React.createElement('div', { className: 'logo-subtext' }, 'Data Audit')
+                )
+              ),
+
+              React.createElement('div', { className: 'sidebar-sections' },
+                React.createElement('div', {},
+                  React.createElement('div', { className: 'sidebar-section-title' }, 'Foundation'),
+                  React.createElement('div', { className: 'sidebar-items' },
+                    steps.slice(0, 3).map((step, idx) =>
+                      React.createElement('div', {
+                        key: step.id,
+                        className: `sidebar-item ${currentStep === idx ? 'active' : ''}`,
+                        onClick: () => setCurrentStep(idx)
+                      },
+                        React.createElement('span', { className: 'sidebar-item-number' }, idx + 1),
+                        React.createElement('span', {}, step.title)
+                      )
+                    )
+                  )
+                ),
+
+                React.createElement('div', {},
+                  React.createElement('div', { className: 'sidebar-section-title' }, 'Current State'),
+                  React.createElement('div', { className: 'sidebar-items' },
+                    steps.slice(3, 6).map((step, idx) =>
+                      React.createElement('div', {
+                        key: step.id,
+                        className: `sidebar-item ${currentStep === idx + 3 ? 'active' : ''}`,
+                        onClick: () => setCurrentStep(idx + 3)
+                      },
+                        React.createElement('span', { className: 'sidebar-item-number' }, idx + 4),
+                        React.createElement('span', {}, step.title)
+                      )
+                    )
+                  )
+                ),
+
+                React.createElement('div', {},
+                  React.createElement('div', { className: 'sidebar-section-title' }, 'Requirements'),
+                  React.createElement('div', { className: 'sidebar-items' },
+                    steps.slice(6, 8).map((step, idx) =>
+                      React.createElement('div', {
+                        key: step.id,
+                        className: `sidebar-item ${currentStep === idx + 6 ? 'active' : ''}`,
+                        onClick: () => setCurrentStep(idx + 6)
+                      },
+                        React.createElement('span', { className: 'sidebar-item-number' }, idx + 7),
+                        React.createElement('span', {}, step.title)
+                      )
+                    )
+                  )
+                ),
+
+                React.createElement('div', {},
+                  React.createElement('div', { className: 'sidebar-section-title' }, 'Capacity'),
+                  React.createElement('div', { className: 'sidebar-items' },
+                    steps.slice(8, 11).map((step, idx) =>
+                      React.createElement('div', {
+                        key: step.id,
+                        className: `sidebar-item ${currentStep === idx + 8 ? 'active' : ''}`,
+                        onClick: () => setCurrentStep(idx + 8)
+                      },
+                        React.createElement('span', { className: 'sidebar-item-number' }, idx + 9),
+                        React.createElement('span', {}, step.title)
+                      )
+                    )
+                  )
+                )
+              )
+            ),
+
+            React.createElement('div', { className: 'main-content' },
+              React.createElement('div', { className: 'header-bar' },
+                React.createElement('div', { className: 'header-info' },
+                  React.createElement('span', { style: { fontSize: '1.5rem' } }, currentStepData.icon),
+                  React.createElement('div', {},
+                    React.createElement('h3', { style: { fontSize: '0.95rem', fontWeight: '600', color: '#0f172a', marginBottom: '0.25rem' } }, currentStepData.title),
+                    React.createElement('div', { className: 'progress-indicator' },
+                      React.createElement('span', {}, `Step ${currentStep + 1} of ${steps.length}`),
+                      React.createElement('span', { style: { color: '#cbd5e1' } }, '•'),
+                      React.createElement('span', { className: 'step-badge' }, `${Math.round(progress)}%`)
+                    )
+                  )
+                )
+              ),
+              React.createElement('div', { className: 'progress-bar' },
+                React.createElement('div', { 
+                  className: 'progress-fill',
+                  style: { width: `${progress}%` }
+                })
+              ),
+
+              React.createElement('div', { className: 'content-area' },
+                React.createElement('div', { className: 'content-card' },
+                  currentStepData.type !== 'intro' && React.createElement('div', {},
+                    React.createElement('h2', { className: 'section-title' }, currentStepData.title),
+                    currentStepData.description && React.createElement('p', { className: 'section-description' }, currentStepData.description)
+                  ),
+                  renderStep(),
+
+                  currentStepData.type !== 'summary' && React.createElement('div', { className: 'btn-row' },
+                    React.createElement('button', {
+                      onClick: () => setCurrentStep(Math.max(0, currentStep - 1)),
+                      disabled: currentStep === 0,
+                      className: 'btn btn-secondary',
+                    }, '← Back'),
+                    React.createElement('button', {
+                      onClick: () => setCurrentStep(Math.min(steps.length - 1, currentStep + 1)),
+                      className: 'btn btn-primary btn-row-full',
+                    }, currentStep === steps.length - 2 ? 'Review Summary' : 'Next →')
+                  ),
+
+                  currentStepData.type === 'summary' && React.createElement('div', { className: 'btn-row' },
+                    React.createElement('button', {
+                      onClick: () => setCurrentStep(Math.max(0, currentStep - 1)),
+                      className: 'btn btn-secondary',
+                    }, '← Back')
+                  )
+                )
+              )
+            )
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(React.createElement(DataAuditTool));
+    </script>
+</body>
+</html>
